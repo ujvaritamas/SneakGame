@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Sneak.hh"
+#include "Snake.hh"
 
 using namespace std;
 
@@ -8,10 +8,9 @@ using namespace std;
 int main()
 {
 
-    Sneak s;
+    Snake s;
 
-    s.initMap();
-    s.display();
+    s.game();
 
     return 0;
 }
