@@ -2,7 +2,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <cstdlib>      //for using the function sleep
-
+#include <conio.h>      //for using kbhit
 
 using namespace std;
 
@@ -13,7 +13,7 @@ Snake::initMap()
     snakePosY = mapHeight / 2;
 
     //place the snake
-    map[snakePosY][snakePosX] = 1;
+    //map[snakePosY][snakePosX] = 1;
 
     // setup the map
     updateMap();
@@ -43,6 +43,19 @@ Snake::updateMap()
                     if(((x != snakePosX) && (y != snakePosY)) && ((x != foodPosx) && (y != foodPosy)))
                     {
                         map[y][x] = 0;
+                    }
+                    else
+                    {
+                        map[snakePosY][snakePosX] = 1;
+                    }
+
+                    if((x != foodPosx) && (y != foodPosy))
+                    {
+                        map[y][x] = 0;
+                    }
+                    else
+                    {
+                        map[foodPosy][foodPosx] = 3;
                     }
 
                 }
@@ -82,16 +95,25 @@ Snake::display()
         }
         cout <<endl;
     }
+
+    cout<< endl << snakePosX << " "<< snakePosY <<endl;
+    sleep(0.3);         //make the programme waiting
 }
 
 void Snake::game(){
     initMap();
     while(true)
     {
+        if (kbhit()) {
+            calculateDirection(char(getch()));
+        }
+
         generatefood();
+        move();
+
         updateMap();
         display();
-        sleep(5);         //make the programme waiting for 5 seconds
+        
     }
 
 }
@@ -105,6 +127,63 @@ void Snake::generatefood()
     foodPosy = y;
 
     // add food to the map
-    map[foodPosy][foodPosx] = 3;
+    //map[foodPosy][foodPosx] = 3;
 
+}
+
+void
+Snake::move()
+{
+
+
+
+    snakePosX += directionX * 1;
+    snakePosY += directionY * 1;
+
+    if(snakePosX == 0)
+        snakePosX = MAP_WIDTH - 2;
+    if(snakePosX == MAP_WIDTH - 1)
+        snakePosX = 1;
+
+    if(snakePosY == 0)
+        snakePosY = MAP_HEIGHT - 2;
+    if(snakePosY == MAP_HEIGHT - 1)
+        snakePosY = 1;
+}
+
+void
+Snake::calculateDirection(char c)
+{
+
+    cout <<"calculateDirection     " << c<<endl;
+    switch (c) {
+    case 'w':
+        if (directionY != 1)
+        {
+            directionY = -1;
+            directionX = 0;
+        }
+        break;
+    case 'd':
+        if (directionX != -1)
+        {
+            directionX = 1;
+            directionY = 0;
+        }
+        break;
+    case 's':
+        if (directionY != -1)
+        {
+            directionY = 1;
+            directionX = 0;
+        }
+        break;
+    case 'a':
+        if (directionX != 1)
+        {
+            directionX = -1;
+            directionY = 0;
+        }
+        break;
+    }
 }

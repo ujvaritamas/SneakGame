@@ -17,7 +17,10 @@ private:
 
     void generatefood();
 
-    
+    void move();
+
+    void calculateDirection(char c);
+
     const int mapWidth = MAP_WIDTH;
     const int mapHeight = MAP_HEIGHT;
 
@@ -29,6 +32,9 @@ private:
     int snakePosY;
     int foodPosx = -1;
     int foodPosy = -1;
+
+    int directionX = 0;
+    int directionY = 0;
 
 
 
