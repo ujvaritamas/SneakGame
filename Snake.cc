@@ -1,7 +1,6 @@
 #include "Snake.hh"
 #include <iostream>
 #include <unistd.h>
-#include <cstdlib>      //for using the function sleep
 #include <conio.h>      //for using kbhit
 
 using namespace std;
@@ -12,9 +11,7 @@ Snake::initMap()
     snakePosX = mapWidth / 2;
     snakePosY = mapHeight / 2;
 
-    //place the snake
-    //map[snakePosY][snakePosX] = 1;
-
+    generatefood();
     // setup the map
     updateMap();
 }
@@ -22,7 +19,6 @@ Snake::initMap()
 void
 Snake::updateMap()
 {
-    
     // setup the map
     for(auto y = 0; y<mapHeight; y++)
     {
@@ -30,34 +26,34 @@ Snake::updateMap()
         {
             if((y == 0) || (y == mapHeight-1))
             {
-                map[y][x] = 2;
+                map[y][x] = Snake::BORDER;
             }
             else
             {
                 if((x == 0) || x == mapWidth-1)
                 {
-                    map[y][x] = 2;
+                    map[y][x] = Snake::BORDER;
                 }
                 else
                 {
-                    if(((x != snakePosX) && (y != snakePosY)) && ((x != foodPosx) && (y != foodPosy)))
+                    if((x == snakePosX) && (y == snakePosY))
                     {
-                        map[y][x] = 0;
+                        map[snakePosY][snakePosX] = Snake::SNAKE_HEAD;
+                    }
+                    else if((x == foodPosx) && (y==foodPosy))
+                    {
+                        map[foodPosy][foodPosx] = Snake::FOOD;
                     }
                     else
                     {
-                        map[snakePosY][snakePosX] = 1;
+                        map[y][x] = Snake::EMPTY;
                     }
 
-                    if((x != foodPosx) && (y != foodPosy))
+                    //add tail to the map
+                    for(auto element:tail)
                     {
-                        map[y][x] = 0;
+                        map[element.posY][element.posX] = Snake::TAIL;
                     }
-                    else
-                    {
-                        map[foodPosy][foodPosx] = 3;
-                    }
-
                 }
             }
         }
@@ -76,17 +72,20 @@ Snake::display()
         {
             switch (map[y][x])
             {
-            case 0:
+            case Snake::EMPTY:
                 cout << " ";
                 break;
-            case 1:
+            case Snake::SNAKE_HEAD:
                 cout<<"O";
                 break;
-            case 2:
+            case Snake::BORDER:
                 cout << "#";
                 break;
-            case 3:
+            case Snake::FOOD:
                 cout<<"X";
+                break;
+            case Snake::TAIL:
+                cout<<"%";
                 break;
             default:
                 break;
@@ -97,7 +96,8 @@ Snake::display()
     }
 
     cout<< endl << snakePosX << " "<< snakePosY <<endl;
-    sleep(0.3);         //make the programme waiting
+    cout << "Score: "<< score <<endl;
+    usleep(SPEED_US);           //make the programme waiting
 }
 
 void Snake::game(){
@@ -108,12 +108,12 @@ void Snake::game(){
             calculateDirection(char(getch()));
         }
 
-        generatefood();
+        //generatefood();
+        check();
         move();
 
         updateMap();
         display();
-        
     }
 
 }
@@ -125,18 +125,30 @@ void Snake::generatefood()
 
     foodPosx = x;
     foodPosy = y;
-
-    // add food to the map
-    //map[foodPosy][foodPosx] = 3;
-
 }
 
 void
 Snake::move()
 {
 
+    //update tail
+    if(tail.size()>0)
+    {
+        if((snakePosX == tail[0].posX) && (snakePosY == tail[0].posY))
+        {
+            //element added just now (only head shall move)
+        }
+        else
+        {
+            moveTail();
+        }
+    }
+    moveHead();
+}
 
-
+void
+Snake::moveHead()
+{
     snakePosX += directionX * 1;
     snakePosY += directionY * 1;
 
@@ -149,6 +161,27 @@ Snake::move()
         snakePosY = MAP_HEIGHT - 2;
     if(snakePosY == MAP_HEIGHT - 1)
         snakePosY = 1;
+}
+
+void
+Snake::moveTail()
+{
+    tailDataType temp0 = tail[0];
+    tailDataType temp1;
+    for(int i = 0; i<tail.size(); i++)
+    {
+        if(i==0)
+        {
+            tail[i].posX = snakePosX;
+            tail[i].posY = snakePosY;
+        }
+        else
+        {
+            temp1 = tail[i];
+            tail[i] = temp0;
+            temp0 = temp1;
+        }
+    }
 }
 
 void
@@ -186,4 +219,25 @@ Snake::calculateDirection(char c)
         }
         break;
     }
+}
+
+void
+Snake::check()
+{
+    if((snakePosX == foodPosx) &&(snakePosY == foodPosy))
+    {
+        increaseTail();
+        generatefood();
+    }
+}
+
+void
+Snake::increaseTail()
+{
+    score++;
+    tailDataType element;
+    element.posX = snakePosX;
+    element.posY = snakePosY;
+    // add element at beginning
+    tail.insert(tail.begin(), element);
 }
